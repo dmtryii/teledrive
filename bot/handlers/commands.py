@@ -6,38 +6,60 @@ from aiogram import types
 import requests
 
 import config
-from states.auth_states import AuthStates
+from messages import templates
+from states.auth_states import SignInStates, SignUpStates
 from states.password_change_states import PasswordChangeStates
 
 router = Router()
 
 
+@router.message(CommandStart())
+async def start_command_handler(message: types.Message) -> None:
+    await message.reply(
+        templates.start_message(),
+        parse_mode='HTML'
+    )
+
+
 @router.message(Command(commands=['signin']))
 async def signin_start(message: types.Message, state: FSMContext):
-    await message.reply('Please enter your password:')
-    await state.set_state(AuthStates.waiting_for_password)
+    await message.reply(
+        templates.signin_prompt(),
+        parse_mode='HTML'
+    )
+    await state.set_state(SignInStates.waiting_for_password)
 
 
-@router.message(AuthStates.waiting_for_password)
+@router.message(SignInStates.waiting_for_password)
 async def process_signin_password(message: types.Message, state: FSMContext):
     password = message.text
     user_id = message.chat.id
     response = requests.post(f'{config.AUTH_API_URL}/signin', json={'user_id': user_id, 'password': password})
     if response.status_code == 200:
         access_token = response.json().get('access_token')
-        await message.reply(f'Successfully signed in! Your access token: {access_token}')
+        session_link = f'*/session/{access_token}'
+        await message.reply(
+            templates.signin_success_message(access_token, session_link),
+            parse_mode='HTML'
+        )
     else:
-        await message.reply('Signin failed!')
+        await message.reply(
+            templates.signin_failure_message(),
+            parse_mode='HTML'
+        )
     await state.clear()
 
 
 @router.message(Command(commands=['signup']))
 async def signup_start(message: types.Message, state: FSMContext):
-    await message.reply('Please enter your password:')
-    await state.set_state(AuthStates.waiting_for_password)
+    await message.reply(
+        templates.signup_prompt(),
+        parse_mode='HTML'
+    )
+    await state.set_state(SignUpStates.waiting_for_password)
 
 
-@router.message(AuthStates.waiting_for_password)
+@router.message(SignUpStates.waiting_for_password)
 async def process_signup_password(message: types.Message, state: FSMContext):
     password = message.text
     user_data = {
@@ -50,15 +72,25 @@ async def process_signup_password(message: types.Message, state: FSMContext):
     response = requests.post(f'{config.AUTH_API_URL}/signup', json=user_data)
     if response.status_code == 201:
         access_token = response.json().get('access_token')
-        await message.reply(f'Successfully signed up! Your access token: {access_token}')
+        session_link = f'*/session/{access_token}'
+        await message.reply(
+            templates.signup_success_message(access_token, session_link),
+            parse_mode='HTML'
+        )
     else:
-        await message.reply('Signup failed!')
+        await message.reply(
+            templates.signup_failure_message(),
+            parse_mode='HTML'
+        )
     await state.clear()
 
 
 @router.message(Command(commands=['change_password']))
 async def change_password_start(message: types.Message, state: FSMContext):
-    await message.reply('Please enter your current password:')
+    await message.reply(
+        templates.current_password_prompt(),
+        parse_mode='HTML'
+    )
     await state.set_state(PasswordChangeStates.waiting_for_current_password)
 
 
@@ -66,7 +98,10 @@ async def change_password_start(message: types.Message, state: FSMContext):
 async def process_current_password(message: types.Message, state: FSMContext):
     current_password = message.text
     await state.update_data(current_password=current_password)
-    await message.reply('Please enter your new password:')
+    await message.reply(
+        templates.new_password_prompt(),
+        parse_mode='HTML'
+    )
     await state.set_state(PasswordChangeStates.waiting_for_new_password)
 
 
@@ -83,17 +118,22 @@ async def process_new_password(message: types.Message, state: FSMContext):
     )
     if response.status_code == 200:
         access_token = response.json().get('access_token')
-        await message.reply(f'Password changed successfully! Your new access token: {access_token}')
+        session_link = f'*/session/{access_token}'
+        await message.reply(
+            templates.password_change_success_message(access_token, session_link),
+            parse_mode='HTML'
+        )
     else:
-        await message.reply('Password change failed!')
+        await message.reply(
+            templates.password_change_failure_message(),
+            parse_mode='HTML'
+        )
     await state.clear()
-
-
-@router.message(CommandStart())
-async def start_command_handler(message: types.Message) -> None:
-    await message.reply('Hi, you can use /signin to sign in or /signup to sign up.')
 
 
 @router.message(Command(commands=['help']))
 async def help_command_handler(message: types.Message) -> None:
-    await message.reply('Use /signin to sign in and /signup to sign up. Follow the prompts after the command.')
+    await message.reply(
+        templates.help_message(),
+        parse_mode='HTML'
+    )
