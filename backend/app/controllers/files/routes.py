@@ -1,5 +1,8 @@
+import os
 
 import requests
+
+from config import Config
 from app.models.files import File
 from flask import jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
@@ -7,7 +10,7 @@ from app.controllers.files import bp
 from app.extensions import db
 
 
-TELEGRAM_BOT_TOKEN = '7147896708:AAFZPB-IRF1ifiBNK6EEiPjXnD4OrH3ieRk'
+TELEGRAM_BOT_TOKEN = Config.BOT_TOKEN
 TELEGRAM_API_URL = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}'
 
 
@@ -31,7 +34,7 @@ def upload_file():
             'document': (filename, file),
         }
         data = {
-            'chat_id': '527517295'
+            'chat_id': user_id
         }
         
         response = requests.post(url, files=files, data=data)
