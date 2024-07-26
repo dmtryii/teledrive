@@ -7,7 +7,7 @@ import requests
 
 import config
 from messages import templates
-from states.auth_states import SignInStates, SignUpStates
+from states.auth_states import SignUpStates
 from states.password_change_states import PasswordChangeStates
 
 router = Router()
@@ -22,32 +22,12 @@ async def start_command_handler(message: types.Message) -> None:
 
 
 @router.message(Command(commands=['signin']))
-async def signin_start(message: types.Message, state: FSMContext):
+async def signin_start(message: types.Message):
+    chat_id = message.chat.id
     await message.reply(
-        templates.signin_prompt(),
+        templates.signin_success_message(chat_id, config.AUTH_FORM_URL),
         parse_mode='HTML'
     )
-    await state.set_state(SignInStates.waiting_for_password)
-
-
-@router.message(SignInStates.waiting_for_password)
-async def process_signin_password(message: types.Message, state: FSMContext):
-    password = message.text
-    user_id = message.chat.id
-    response = requests.post(f'{config.AUTH_API_URL}/signin', json={'user_id': user_id, 'password': password})
-    if response.status_code == 200:
-        access_token = response.json().get('access_token')
-        session_link = f'*/session/{access_token}'
-        await message.reply(
-            templates.signin_success_message(access_token, session_link),
-            parse_mode='HTML'
-        )
-    else:
-        await message.reply(
-            templates.signin_failure_message(),
-            parse_mode='HTML'
-        )
-    await state.clear()
 
 
 @router.message(Command(commands=['signup']))
@@ -71,10 +51,8 @@ async def process_signup_password(message: types.Message, state: FSMContext):
     }
     response = requests.post(f'{config.AUTH_API_URL}/signup', json=user_data)
     if response.status_code == 201:
-        access_token = response.json().get('access_token')
-        session_link = f'*/session/{access_token}'
         await message.reply(
-            templates.signup_success_message(access_token, session_link),
+            templates.signup_success_message(message.chat.id, config.AUTH_FORM_URL),
             parse_mode='HTML'
         )
     else:
@@ -117,10 +95,8 @@ async def process_new_password(message: types.Message, state: FSMContext):
         json={'user_id': user_id, 'current_password': current_password, 'new_password': new_password}
     )
     if response.status_code == 200:
-        access_token = response.json().get('access_token')
-        session_link = f'*/session/{access_token}'
         await message.reply(
-            templates.password_change_success_message(access_token, session_link),
+            templates.password_change_success_message(user_id, config.AUTH_FORM_URL),
             parse_mode='HTML'
         )
     else:
