@@ -3,7 +3,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import SignInPage from '../pages/SignInPage';
 import ProtectedRoute from './ProtectedRoute';
 import UploadPage from '../pages/UploadPage';
-import MyDrivePage from '../pages/MainPage';
+import DrivePage from '../pages/DrivePage';
 import NotFoundPage from '../pages/NotFoundPage';
 
 const getAccessToken = () => localStorage.getItem('access_token');
@@ -20,7 +20,7 @@ const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: <MyDrivePage />,
+        element: <DrivePage />,
         index: true
       },
       {
