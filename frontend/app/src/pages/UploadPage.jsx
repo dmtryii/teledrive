@@ -1,26 +1,28 @@
 import React, { useState } from 'react';
-import { Typography, Box, Card, CardContent} from '@mui/material';
+import { Typography, Box, Card, CardContent } from '@mui/material';
 import axiosInstance from '../config/axiosConfig';
 import FileUploadForm from '../components/forms/FileUploadForm';
 
 const UploadPage = () => {
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
+    setFiles(Array.from(event.target.files));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (!file) {
-      setMessage('Please select a file to upload.');
+    if (files.length === 0) {
+      setMessage('Please select files to upload.');
       return;
     }
 
     const formData = new FormData();
-    formData.append('file', file);
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
 
     setLoading(true);
 
@@ -49,11 +51,11 @@ const UploadPage = () => {
       <Card sx={{ maxWidth: 500, width: '100%', p: 2, boxShadow: 3 }}>
         <CardContent>
           <Typography variant="h4" component="h1" gutterBottom>
-            Upload File
+            Upload Files
           </Typography>
           <FileUploadForm
             handleFileChange={handleFileChange}
-            file={file}
+            files={files}
             handleSubmit={handleSubmit}
             loading={loading}
           />

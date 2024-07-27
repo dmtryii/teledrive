@@ -1,6 +1,6 @@
 import { Button, Typography, Box, CircularProgress } from '@mui/material';
 
-const FileUploadForm = ({ handleFileChange, file, handleSubmit, loading }) => (
+const FileUploadForm = ({ handleFileChange, files, handleSubmit, loading }) => (
   <form onSubmit={handleSubmit}>
     <Box mb={3} display="flex" justifyContent="center" alignItems="center">
       <input
@@ -8,17 +8,22 @@ const FileUploadForm = ({ handleFileChange, file, handleSubmit, loading }) => (
         id="file-upload"
         onChange={handleFileChange}
         accept="*/*"
+        multiple
         style={{ display: 'none' }}
       />
       <label htmlFor="file-upload">
         <Button variant="outlined" component="span">
-          Choose File
+          Choose Files
         </Button>
       </label>
-      {file && (
-        <Typography variant="body1" color="textPrimary" ml={2}>
-          {file.name}
-        </Typography>
+      {files.length > 0 && (
+        <Box ml={2}>
+          {files.map((file, index) => (
+            <Typography key={index} variant="body1" color="textPrimary">
+              {file.name}
+            </Typography>
+          ))}
+        </Box>
       )}
     </Box>
     {loading ? (
