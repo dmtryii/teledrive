@@ -46,12 +46,11 @@ def upload_file():
             return jsonify({"msg": f"Telegram API error for file {filename}: {response.text}"}), 500
 
         telegram_response = response.json()
-        telegram_file_id = telegram_response['result']['document']['file_id']
+        telegram_document = telegram_response['result']['document']
 
         new_file = File(
-            name=filename,
-            telegram_file_id=telegram_file_id,
-            user_id=user_id
+            user_id=user_id,
+            document_info=telegram_document
         )
         db.session.add(new_file)
         uploaded_files.append(filename)
@@ -67,20 +66,24 @@ def download_file(file_id):
     file = File.query.get(file_id)
     if not file or file.user_id != get_jwt_identity():
         return jsonify({"msg": "File not found or unauthorized"}), 404
-    
+
+    telegram_file_id = file.document_info.get('file_id')
+    if not telegram_file_id:
+        return jsonify({"msg": "Telegram file ID not found"}), 404
+
     url = f"{TELEGRAM_API_URL}/getFile"
     params = {
-        'file_id': file.telegram_file_id
+        'file_id': telegram_file_id
     }
-    
+
     response = requests.get(url, params=params)
-    
+
     if response.status_code != 200:
         return jsonify({"msg": f"Telegram API error: {response.text}"}), 500
-    
+
     file_path = response.json()['result']['file_path']
     file_url = f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{file_path}"
-    
+
     return jsonify({"file_url": file_url})
 
 
