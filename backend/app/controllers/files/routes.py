@@ -16,43 +16,49 @@ TELEGRAM_API_URL = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}'
 @bp.route('/upload', methods=['POST'])
 @jwt_required()
 def upload_file():
-    if 'file' not in request.files:
-        return jsonify({"msg": "No file part"}), 400
-    
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({"msg": "No selected file"}), 400
-    
-    if file:
+    if 'files' not in request.files:
+        return jsonify({"msg": "No files part"}), 400
+
+    files = request.files.getlist('files')
+    if not files:
+        return jsonify({"msg": "No selected files"}), 400
+
+    user_id = get_jwt_identity()
+    uploaded_files = []
+
+    for file in files:
+        if file.filename == '':
+            continue
+
         filename = file.filename
-        
-        user_id = get_jwt_identity()
-        
+
         url = f"{TELEGRAM_API_URL}/sendDocument"
-        files = {
+        telegram_files = {
             'document': (filename, file),
         }
         data = {
             'chat_id': user_id
         }
-        
-        response = requests.post(url, files=files, data=data)
-        
+
+        response = requests.post(url, files=telegram_files, data=data)
+
         if response.status_code != 200:
-            return jsonify({"msg": f"Telegram API error: {response.text}"}), 500
-        
+            return jsonify({"msg": f"Telegram API error for file {filename}: {response.text}"}), 500
+
         telegram_response = response.json()
         telegram_file_id = telegram_response['result']['document']['file_id']
-        
+
         new_file = File(
             name=filename,
             telegram_file_id=telegram_file_id,
             user_id=user_id
         )
         db.session.add(new_file)
-        db.session.commit()
-        
-        return jsonify({"msg": "File uploaded successfully"}), 201
+        uploaded_files.append(filename)
+
+    db.session.commit()
+
+    return jsonify({"msg": "Files uploaded successfully", "files": uploaded_files}), 201
 
 
 @bp.route('/<int:file_id>/download', methods=['GET'])
