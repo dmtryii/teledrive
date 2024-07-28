@@ -5,10 +5,10 @@ from datetime import date
 from flask_jwt_extended import create_access_token
 
 from app.extensions import db
-from app.exceptions.auth_exception import InvalidCredentialsException
+from app.exceptions.auth_exception import InvalidCredentialsException, IncorrectPasswordException
 from app.helpers import converters
 from app.models.users import BaseUser
-from app.exceptions.user_exception import InvalidAgeException, PasswordTooShortException, IncorrectPasswordException
+from app.exceptions.user_exception import InvalidAgeException, PasswordTooShortException
 
 
 def get_all() -> List:
