@@ -1,12 +1,7 @@
 import React from 'react';
 import { Card, CardContent, Typography, Button, CardActions } from '@mui/material';
 import { CloudDownload as CloudDownloadIcon, Delete as DeleteIcon } from '@mui/icons-material';
-
-const truncateMiddle = (text, maxLength) => {
-    if (text.length <= maxLength) return text;
-    const halfLength = Math.floor(maxLength / 2);
-    return `${text.slice(0, halfLength)}...${text.slice(-halfLength)}`;
-};
+import truncateMiddle from '../../utils/stringUtils';
 
 const FileCard = ({ file, onDownload, onDelete }) => {
 
@@ -28,6 +23,9 @@ const FileCard = ({ file, onDownload, onDelete }) => {
             </Typography>
             <Typography color="textSecondary">
             File Size: {file.document_info.file_size} bytes
+            </Typography>
+            <Typography color="textSecondary">
+            Upload date: {file.upload}
             </Typography>
         </CardContent>
         <CardActions>
