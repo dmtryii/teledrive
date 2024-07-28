@@ -1,7 +1,7 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 
-from app.exceptions.user_exception import InvalidUsage
+from app.exceptions.custom_exception import CustomException
 from config import Config
 from app.extensions import db, jwt, migrate
 
@@ -27,12 +27,12 @@ def create_app(config_class=Config):
     app.register_blueprint(files_bp, url_prefix='/files')
         
     # Register error handlers
-    app.register_error_handler(InvalidUsage, handle_invalid_usage)
+    app.register_error_handler(CustomException, handle_custom_exception)
         
     return app
 
 
-def handle_invalid_usage(error):
+def handle_custom_exception(error):
     response = jsonify(error.to_dict())
     response.status_code = error.status_code
     return response
