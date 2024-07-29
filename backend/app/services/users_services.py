@@ -1,14 +1,12 @@
 
 from typing import List
-from datetime import date
 
 from flask_jwt_extended import create_access_token
 
 from app.extensions import db
 from app.exceptions.auth_exception import InvalidCredentialsException, IncorrectPasswordException
-from app.helpers import converters
 from app.models.users import BaseUser
-from app.exceptions.user_exception import InvalidAgeException, PasswordTooShortException
+from app.exceptions.user_exception import PasswordTooShortException
 
 
 def get_all() -> List[BaseUser]:
@@ -32,13 +30,3 @@ def change_password(user_id: int, current_password: str, new_password: str) -> s
     db.session.commit()
 
     return create_access_token(identity=user.id)
-
-        
-def check_min_age(birthday: str, min_age: int) -> None:
-    birthday = converters.str_to_date(birthday)
-    
-    today = date.today()
-    age = today.year - birthday.year - ((today.month, today.day) < (birthday.month, birthday.day))
-    if age < min_age:
-        raise InvalidAgeException(f'User must be at least {min_age} years old')
-        
