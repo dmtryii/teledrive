@@ -13,6 +13,12 @@ def get_users():
     return jsonify({'users': json_users}), 200
 
 
+@bp.route('/<int:user_id>', methods=['GET'])
+def get_user(user_id):
+    user = users_services.get_by_id(user_id)
+    return jsonify({'user': user.to_dict()}), 200
+
+
 @bp.route('/change_password', methods=['PATCH'])
 def change_password_route():
     data = request.get_json()
