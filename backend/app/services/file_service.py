@@ -1,4 +1,7 @@
 
+from typing import List
+from werkzeug.datastructures.file_storage import FileStorage
+
 from app.exceptions.auth_exception import UnauthorizedError
 from app.exceptions.file_exception import FileNotFoundException, DeletionError
 from app.exceptions.telegram_exception import TelegramFileNotFoundError
@@ -7,7 +10,7 @@ from app.extensions import db
 from app.services import telegram_service
 
 
-def upload_files(files, user_id):
+def upload_files(files: List[FileStorage], user_id: int) -> List[str]:
     uploaded_files = []
 
     for file in files:
@@ -30,7 +33,7 @@ def upload_files(files, user_id):
     return uploaded_files
 
 
-def download_file(file_id, user_id):
+def download_file(file_id: int, user_id: int) -> str:
     file = File.query.get(file_id)
     if not file:
         raise FileNotFoundException("File not found")
@@ -46,7 +49,7 @@ def download_file(file_id, user_id):
     return telegram_service.generate_file_url(file_path)
 
 
-def delete_file(file_id, user_id):
+def delete_file(file_id: int, user_id: int) -> None:
     file = File.query.get(file_id)
     if not file:
         raise TelegramFileNotFoundError("File not found")
@@ -62,11 +65,11 @@ def delete_file(file_id, user_id):
         raise DeletionError(f"Error deleting file: {str(e)}")
 
 
-def get_files(user_id):
+def get_files(user_id: int) -> List[File]:
     return File.query.filter_by(user_id=user_id).all()
 
 
-def store_file_info(user_id, document_info):
+def store_file_info(user_id, document_info) -> None:
     new_file = File(user_id=user_id, document_info=document_info)
     db.session.add(new_file)
     db.session.commit()

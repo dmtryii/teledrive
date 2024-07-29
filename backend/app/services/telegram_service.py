@@ -1,6 +1,9 @@
 
 import requests
 
+from typing import Dict, Any, Union
+from werkzeug.datastructures.file_storage import FileStorage
+
 from app.exceptions.telegram_exception import TelegramAPIError, MessageDeletionError
 from config import Config
 
@@ -9,7 +12,7 @@ TELEGRAM_BOT_TOKEN = Config.BOT_TOKEN
 TELEGRAM_API_URL = f'https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}'
 
 
-def send_document(file, user_id):
+def send_document(file: FileStorage, user_id: Union[int, str]) -> Dict[str, Any]:
     url = f"{TELEGRAM_API_URL}/sendDocument"
     telegram_files = {'document': (file.filename, file)}
     data = {'chat_id': user_id}
@@ -21,7 +24,7 @@ def send_document(file, user_id):
     return response.json()
 
 
-def delete_message(user_id, message_id):
+def delete_message(user_id: Union[int, str], message_id: int) -> None:
     delete_url = f"{TELEGRAM_API_URL}/deleteMessage"
     delete_data = {'chat_id': user_id, 'message_id': message_id}
 
@@ -30,7 +33,7 @@ def delete_message(user_id, message_id):
         raise MessageDeletionError(f"Failed to delete message: {delete_response.text}")
 
 
-def get_file_path(file_id):
+def get_file_path(file_id: str) -> str:
     url = f"{TELEGRAM_API_URL}/getFile"
     params = {'file_id': file_id}
 
@@ -41,5 +44,5 @@ def get_file_path(file_id):
     return response.json()['result']['file_path']
 
 
-def generate_file_url(file_path):
+def generate_file_url(file_path: str) -> str:
     return f"https://api.telegram.org/file/bot{TELEGRAM_BOT_TOKEN}/{file_path}"

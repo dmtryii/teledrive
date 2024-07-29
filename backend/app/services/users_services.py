@@ -11,7 +11,7 @@ from app.models.users import BaseUser
 from app.exceptions.user_exception import InvalidAgeException, PasswordTooShortException
 
 
-def get_all() -> List:
+def get_all() -> List[BaseUser]:
     return BaseUser.query.all()
 
 
