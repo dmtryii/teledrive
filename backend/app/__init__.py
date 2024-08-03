@@ -22,9 +22,9 @@ def create_app(config_class=Config):
     from app.controllers.users import bp as users_bp
     from app.controllers.auth import bp as auth_bp
     from app.controllers.files import bp as files_bp
-    app.register_blueprint(users_bp, url_prefix='/users')
-    app.register_blueprint(auth_bp, url_prefix='/auth')
-    app.register_blueprint(files_bp, url_prefix='/files')
+    app.register_blueprint(users_bp, url_prefix='/api/users')
+    app.register_blueprint(auth_bp, url_prefix='/api/auth')
+    app.register_blueprint(files_bp, url_prefix='/api/files')
         
     # Register error handlers
     app.register_error_handler(CustomException, handle_custom_exception)
