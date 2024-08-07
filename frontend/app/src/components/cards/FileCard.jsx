@@ -25,7 +25,7 @@ const FileCard = ({ file, allFolders, folderContents, setFolderContents, setMess
       const response = await axiosInstance.get(`files/${fileId}/download`);
       window.open(response.data.file_url, '_blank');
     } catch (error) {
-      setMessage(`Error: ${error.response?.data?.msg || error.message}`);
+      setMessage(`Error: ${error.response?.data?.message || error.message}`);
     }
   };
 
@@ -43,7 +43,7 @@ const FileCard = ({ file, allFolders, folderContents, setFolderContents, setMess
         })));
         setMessage('File deleted successfully.');
       } catch (error) {
-        setMessage(`Error: ${error.response?.data?.msg || error.message}`);
+        setMessage(`Error: ${error.response?.data?.message || error.message}`);
       }
     }
   };
@@ -66,7 +66,7 @@ const FileCard = ({ file, allFolders, folderContents, setFolderContents, setMess
       }));
       setMessage('File moved successfully.');
     } catch (error) {
-      setMessage(`Error: ${error.response?.data?.msg || error.message}`);
+      setMessage(`Error: ${error.response?.data?.message || error.message}`);
     }
   };
 

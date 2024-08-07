@@ -42,7 +42,7 @@ const DrivePage = () => {
         const response = await axiosInstance.get(`folders/${folderId}`);
         setFolderContents([response.data]);
       } catch (error) {
-        setMessage(`Error: ${error.response?.data?.msg || error.message}`);
+        setMessage(`Error: ${error.response?.data?.message || error.message}`);
       } finally {
         setLoading(false);
       }
@@ -53,7 +53,7 @@ const DrivePage = () => {
         const response = await axiosInstance.get('folders/all');
         setAllFolders(response.data);
       } catch (error) {
-        setMessage(`Error: ${error.response?.data?.msg || error.message}`);
+        setMessage(`Error: ${error.response?.data?.message || error.message}`);
       }
     };
 
@@ -84,7 +84,7 @@ const DrivePage = () => {
       setFolderContents([response.data]);
       setPath(prevPath => [...prevPath, { id: folderId, name: folderName }]);
     } catch (error) {
-      setMessage(`Error: ${error.response?.data?.msg || error.message}`);
+      setMessage(`Error: ${error.response?.data?.message || error.message}`);
     } finally {
       setLoading(false);
     }
@@ -97,7 +97,7 @@ const DrivePage = () => {
       setFolderContents([response.data]);
       setPath(path.slice(0, index + 1));
     } catch (error) {
-      setMessage(`Error: ${error.response?.data?.msg || error.message}`);
+      setMessage(`Error: ${error.response?.data?.message || error.message}`);
     } finally {
       setLoading(false);
     }
@@ -135,7 +135,7 @@ const DrivePage = () => {
       setNewFolderName('');
       setShowCreateFolderForm(false);
     } catch (error) {
-      setMessage(`Error: ${error.response?.data?.msg || error.message}`);
+      setMessage(`Error: ${error.response?.data?.message || error.message}`);
     }
   };
 

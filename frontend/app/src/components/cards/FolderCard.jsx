@@ -70,7 +70,7 @@ const FolderCard = ({ folder, onClick, folderContents, setFolderContents, setMes
         })));
         setMessage('Folder deleted successfully.');
       } catch (error) {
-        setMessage(`Error: ${error.response?.data?.msg || error.message}`);
+        setMessage(`Error: ${error.response?.data?.message || error.message}`);
       }
     }
   };
@@ -95,7 +95,7 @@ const FolderCard = ({ folder, onClick, folderContents, setFolderContents, setMes
       }));
       setMessage('Folder moved successfully.');
     } catch (error) {
-      setMessage(`Error: ${error.response?.data?.msg || error.message}`);
+      setMessage(`Error: ${error.response?.data?.message || error.message}`);
     }
   };
 

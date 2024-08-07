@@ -34,15 +34,13 @@ def get_folder(folder_id):
 def create_folder():
     user_id = get_jwt_identity()
     data = request.get_json()
-    try:
-        new_folder = folder_services.create_folder(
-            name=data.get('name'),
-            user_id=user_id,
-            parent_id=int(data.get('parent_id')) if data.get('parent_id') else None
-        )
-        return jsonify(new_folder=new_folder.to_dict()), 201
-    except Exception as e:
-        return jsonify({"msg": f"Unexpected error: {str(e)}"}), 500
+
+    new_folder = folder_services.create_folder(
+        name=data.get('name'),
+        user_id=user_id,
+        parent_id=int(data.get('parent_id')) if data.get('parent_id') else None
+    )
+    return jsonify(new_folder=new_folder.to_dict()), 201
 
 
 @bp.route('<int:folder_id>/move', methods=['POST'])
@@ -50,15 +48,13 @@ def create_folder():
 def move_folder(folder_id):
     user_id = get_jwt_identity()
     data = request.get_json()
-    try:
-        folder = folder_services.move_folder(
-            user_id=user_id,
-            folder_id=folder_id,
-            destination_folder_id=data.get('destination_folder_id')
-        )
-        return jsonify(folder.to_dict()), 200
-    except Exception as e:
-        return jsonify({"msg": f"Unexpected error: {str(e)}"}), 500
+
+    folder = folder_services.move_folder(
+        user_id=user_id,
+        folder_id=folder_id,
+        destination_folder_id=data.get('destination_folder_id')
+    )
+    return jsonify(folder.to_dict()), 200
 
 
 @bp.route('/<int:folder_id>/available_to_move', methods=['GET'])

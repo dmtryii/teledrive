@@ -32,9 +32,9 @@ const UploadPage = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      setMessage(response.data.msg);
+      setMessage(response.data.message);
     } catch (error) {
-      setMessage(`Error: ${error.response?.data?.msg || error.message}`);
+      setMessage(`Error: ${error.response?.data?.message || error.message}`);
     } finally {
       setLoading(false);
     }

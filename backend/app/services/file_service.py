@@ -3,11 +3,14 @@ from typing import List
 from werkzeug.datastructures.file_storage import FileStorage
 
 from app.exceptions.auth_exception import UnauthorizedError
-from app.exceptions.file_exception import FileNotFoundException, DeletionError
+from app.exceptions.file_exception import FileNotFoundException, DeletionError, FileUploadError
 from app.exceptions.telegram_exception import TelegramFileNotFoundError
 from app.models.files import File
 from app.extensions import db
 from app.services import telegram_service, folder_services
+
+
+MAX_FILE_SIZE = 1.5 * 1024 * 1024 * 1024
 
 
 def upload_files(files: List[FileStorage], user_id: int, folder_id: int = None) -> List[str]:
@@ -19,6 +22,10 @@ def upload_files(files: List[FileStorage], user_id: int, folder_id: int = None) 
     for file in files:
         if file.filename == '':
             continue
+
+        if get_size(file) > MAX_FILE_SIZE:
+            print('Hello')
+            raise FileUploadError(f"File {file.filename} exceeds the maximum allowed size of 1.5 GB")
 
         # Step 1: Send the document
         telegram_response = telegram_service.send_document(file, user_id)
@@ -99,3 +106,11 @@ def store_file_info(user_id: int, document_info: dict, folder_id: int = None) ->
     new_file = File(user_id=user_id, document_info=document_info, folder_id=folder_id)
     db.session.add(new_file)
     db.session.commit()
+
+
+def get_size(file: FileStorage) -> int:
+    file.stream.seek(0, 2)
+    file_size = file.stream.tell()
+    file.stream.seek(0)
+
+    return file_size
