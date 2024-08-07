@@ -17,8 +17,11 @@ const TopMenu = () => {
         <Button color="inherit" onClick={() => navigate('/upload')}>
           Upload
         </Button>
-        <Button color="inherit" onClick={() => navigate('/signin')}>
-          SignIn
+        <Button color="inherit" onClick={() => {
+          navigate('/signin');
+          localStorage.removeItem('access_token');
+        }}>
+          SignOut
         </Button>
       </Toolbar>
     </AppBar>
