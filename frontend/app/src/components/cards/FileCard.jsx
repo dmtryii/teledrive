@@ -1,20 +1,74 @@
 import React, { useState } from 'react';
-import { Card, CardContent, Typography, Button, CardActions, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Card, CardContent, Typography, Button, CardActions, FormControl, InputLabel, Select, MenuItem, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { CloudDownload as CloudDownloadIcon, Delete as DeleteIcon, DriveFileMove as MoveIcon } from '@mui/icons-material';
 import truncateMiddle from '../../utils/stringUtils';
 import fileFieldsUtils from '../../utils/fileFieldsUtils';
+import axiosInstance from '../../config/axiosConfig';
+import constructPath from '../../utils/folderUtils';
 
-const FileCard = ({ file, onDownload, onDelete, onMove, folders }) => {
+const FileCard = ({ file, allFolders, folderContents, setFolderContents, setMessage }) => {
   const [targetFolder, setTargetFolder] = useState('');
-
-  const handleMove = () => {
-    if (targetFolder) {
-      onMove(file.id, targetFolder);
-    }
-  };
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const fileName = file.document_info.file_name || 'Unknown File';
   const truncatedFileName = truncateMiddle(fileName, 20);
+
+  const handleMove = () => {
+    if (targetFolder) {
+      handleMoveFile(file.id, targetFolder);
+      setDialogOpen(false);
+    }
+  };
+
+  const handleDownload = async (fileId) => {
+    try {
+      const response = await axiosInstance.get(`files/${fileId}/download`);
+      window.open(response.data.file_url, '_blank');
+    } catch (error) {
+      setMessage(`Error: ${error.response?.data?.msg || error.message}`);
+    }
+  };
+
+  const handleDelete = async (fileId) => {
+    if (window.confirm('Are you sure you want to delete this file?')) {
+      try {
+        await axiosInstance.delete(`files/${fileId}`);
+        setFolderContents(folderContents.map(folder => ({
+          ...folder,
+          files: folder.files.filter(file => file.id !== fileId),
+          subfolders: folder.subfolders.map(subfolder => ({
+            ...subfolder,
+            files: subfolder.files.filter(file => file.id !== fileId)
+          }))
+        })));
+        setMessage('File deleted successfully.');
+      } catch (error) {
+        setMessage(`Error: ${error.response?.data?.msg || error.message}`);
+      }
+    }
+  };
+
+  const handleMoveFile = async (fileId, targetFolderId) => {
+    try {
+      const response = await axiosInstance.post(`files/${fileId}/move`, { folder_id: targetFolderId });
+      setFolderContents(folderContents.map(folder => {
+        if (folder.id === targetFolderId) {
+          return {
+            ...folder,
+            files: [...folder.files, response.data]
+          };
+        } else {
+          return {
+            ...folder,
+            files: folder.files.filter(file => file.id !== fileId)
+          };
+        }
+      }));
+      setMessage('File moved successfully.');
+    } catch (error) {
+      setMessage(`Error: ${error.response?.data?.msg || error.message}`);
+    }
+  };
 
   return (
     <Card sx={{ minWidth: 275, mb: 2 }}>
@@ -38,47 +92,58 @@ const FileCard = ({ file, onDownload, onDelete, onMove, folders }) => {
           Upload date: {fileFieldsUtils.formatTimestamp(file.upload)}
         </Typography>
       </CardContent>
-      <CardActions>
+      <CardActions style={{ justifyContent: 'space-between'}}>
         <Button
-          size="small"
           color="primary"
-          onClick={() => onDownload(file.id)}
-          startIcon={<CloudDownloadIcon />}
+          onClick={() => handleDownload(file.id)}
         >
-          Download
+          <CloudDownloadIcon />
         </Button>
         <Button
-          size="small"
           color="secondary"
-          onClick={() => onDelete(file.id)}
-          startIcon={<DeleteIcon />}
+          onClick={() => handleDelete(file.id)}
         >
-          Delete
+          <DeleteIcon />
         </Button>
-      </CardActions>
-      <CardActions>
-        <FormControl fullWidth>
-          <InputLabel>Move to Folder</InputLabel>
-          <Select
-            value={targetFolder}
-            onChange={(e) => setTargetFolder(e.target.value)}
-            startIcon={<MoveIcon />}
-          >
-            {folders.map(folder => (
-              <MenuItem key={folder.id} value={folder.id}>
-                {folder.name}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
         <Button
-          size="small"
-          onClick={handleMove}
-          startIcon={<MoveIcon />}
+          onClick={() => setDialogOpen(true)}
         >
-          Move
+          <MoveIcon />
         </Button>
       </CardActions>
+
+      <Dialog
+        open={dialogOpen}
+        onClose={() => setDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        sx={{ '& .MuiDialog-paper': { height: '400px' } }}
+      >
+        <DialogTitle>Move to Folder</DialogTitle>
+        <DialogContent>
+          <FormControl fullWidth>
+            <InputLabel>Move to Folder</InputLabel>
+            <Select
+              value={targetFolder}
+              onChange={(e) => setTargetFolder(e.target.value)}
+            >
+              {allFolders.map(folder => (
+                <MenuItem key={folder.id} value={folder.id}>
+                  { constructPath(folder, allFolders) }
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleMove} startIcon={<MoveIcon />}>
+            Move
+          </Button>
+          <Button onClick={() => setDialogOpen(false)}>
+            Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Card>
   );
 };

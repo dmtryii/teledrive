@@ -21,7 +21,7 @@ import fileSortUtils from '../utils/fileSortUtils';
 import FolderCreationForm from '../components/forms/FolderCreationForm';
 
 const DrivePage = () => {
-  const [folders, setFolders] = useState([]);
+  const [folderContents, setFolderContents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
 
@@ -40,7 +40,7 @@ const DrivePage = () => {
       setLoading(true);
       try {
         const response = await axiosInstance.get(`folders/${folderId}`);
-        setFolders([response.data]);
+        setFolderContents([response.data]);
       } catch (error) {
         setMessage(`Error: ${error.response?.data?.msg || error.message}`);
       } finally {
@@ -60,55 +60,6 @@ const DrivePage = () => {
     fetchFolders();
     fetchAllFolders();
   }, []);
-
-  const handleDownload = async (fileId) => {
-    try {
-      const response = await axiosInstance.get(`files/${fileId}/download`);
-      window.open(response.data.file_url, '_blank');
-    } catch (error) {
-      setMessage(`Error: ${error.response?.data?.msg || error.message}`);
-    }
-  };
-
-  const handleDelete = async (fileId) => {
-    if (window.confirm('Are you sure you want to delete this file?')) {
-      try {
-        await axiosInstance.delete(`files/${fileId}`);
-        setFolders(folders.map(folder => ({
-          ...folder,
-          files: folder.files.filter(file => file.id !== fileId),
-          subfolders: folder.subfolders.map(subfolder => ({
-            ...subfolder,
-            files: subfolder.files.filter(file => file.id !== fileId)
-          }))
-        })));
-        setMessage('File deleted successfully.');
-      } catch (error) {
-        setMessage(`Error: ${error.response?.data?.msg || error.message}`);
-      }
-    }
-  };
-
-  const handleDeleteFolder = async (folderId) => {
-    if (window.confirm('Are you sure you want to delete this folder? This will delete all its contents.')) {
-      try {
-        await axiosInstance.delete(`folders/${folderId}`);
-        setFolders(folders.map(folder => ({
-          ...folder,
-          files: folder.files.filter(file => !file.folderId || file.folderId !== folderId),
-          subfolders: folder.subfolders
-            .filter(subfolder => subfolder.id !== folderId)
-            .map(subfolder => ({
-              ...subfolder,
-              files: subfolder.files.filter(file => file.folderId !== folderId),
-              subfolders: subfolder.subfolders.filter(subSubfolder => subSubfolder.id !== folderId)
-            }))
-        })));        setMessage('Folder deleted successfully.');
-      } catch (error) {
-        setMessage(`Error: ${error.response?.data?.msg || error.message}`);
-      }
-    }
-  };
 
   const handleSortChange = (event) => {
     setSortCriteria(event.target.value);
@@ -130,7 +81,7 @@ const DrivePage = () => {
     setLoading(true);
     try {
       const response = await axiosInstance.get(`folders/${folderId}`);
-      setFolders([response.data]);
+      setFolderContents([response.data]);
       setPath(prevPath => [...prevPath, { id: folderId, name: folderName }]);
     } catch (error) {
       setMessage(`Error: ${error.response?.data?.msg || error.message}`);
@@ -143,59 +94,12 @@ const DrivePage = () => {
     setLoading(true);
     try {
       const response = await axiosInstance.get(`folders/${folderId}`);
-      setFolders([response.data]);
+      setFolderContents([response.data]);
       setPath(path.slice(0, index + 1));
     } catch (error) {
       setMessage(`Error: ${error.response?.data?.msg || error.message}`);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleMoveFile = async (fileId, targetFolderId) => {
-    try {
-      const response = await axiosInstance.post(`files/${fileId}/move`, { folder_id: targetFolderId });
-      setFolders(folders.map(folder => {
-        if (folder.id === targetFolderId) {
-          return {
-            ...folder,
-            files: [...folder.files, response.data]
-          };
-        } else {
-          return {
-            ...folder,
-            files: folder.files.filter(file => file.id !== fileId)
-          };
-        }
-      }));
-      setMessage('File moved successfully.');
-    } catch (error) {
-      setMessage(`Error: ${error.response?.data?.msg || error.message}`);
-    }
-  };
-
-  const handleMoveFolder = async (folderId, targetFolderId) => {
-    try {
-      const response = await axiosInstance.post('folders/move', {
-        folder_id: folderId,
-        destination_folder_id: targetFolderId
-      });
-      setFolders(folders.map(folder => {
-        if (folder.id === targetFolderId) {
-          return {
-            ...folder,
-            subfolders: [...folder.subfolders, response.data]
-          };
-        } else {
-          return {
-            ...folder,
-            subfolders: folder.subfolders.filter(subfolder => subfolder.id !== folderId)
-          };
-        }
-      }));
-      setMessage('Folder moved successfully.');
-    } catch (error) {
-      setMessage(`Error: ${error.response?.data?.msg || error.message}`);
     }
   };
 
@@ -208,7 +112,7 @@ const DrivePage = () => {
   
       const newFolder = response.data.new_folder;
   
-      setFolders(prevFolders => {
+      setFolderContents(prevFolders => {
         const addFolderRecursively = (folders) => {
           return folders.map(folder => {
             if (folder.id === newFolder.parent_id) {
@@ -246,10 +150,10 @@ const DrivePage = () => {
             <Grid item xs={12} sm={6} md={4} lg={3} key={file.id}>
               <FileCard
                 file={file}
-                onDownload={handleDownload}
-                onDelete={handleDelete}
-                onMove={handleMoveFile}
-                folders={allFolders}
+                allFolders={allFolders}
+                folderContents={folderContents}
+                setFolderContents={setFolderContents}
+                setMessage={setMessage}
               />
             </Grid>
           ))}
@@ -258,8 +162,9 @@ const DrivePage = () => {
               <FolderCard
                 folder={subfolder}
                 onClick={() => handleFolderClick(subfolder.id, subfolder.name)}
-                onDelete={handleDeleteFolder}
-                onMove={handleMoveFolder}
+                folderContents={folderContents}
+                setFolderContents={setFolderContents}
+                setMessage={setMessage}
               />
             </Grid>
           ))}
@@ -349,7 +254,7 @@ const DrivePage = () => {
             <CircularProgress />
           </Box>
         ) : (
-          folders.map(folder => renderFolders(folder))
+          folderContents.map(folder => renderFolders(folder))
         )}
         {message && (
           <Typography variant="body2" color="textSecondary" mt={2}>
