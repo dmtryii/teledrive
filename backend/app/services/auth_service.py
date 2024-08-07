@@ -9,6 +9,8 @@ from app.exceptions.user_exception import (
     UsernameAllreadyPresentException)
 from app.models.users import BaseUser, Role
 
+from app.services import folder_services
+
 
 def signin(user_id: int, password: str) -> str:
     if not user_id:
@@ -44,9 +46,11 @@ def signup(user_id: int, username: str, password: str, first_name: str, last_nam
     __set_default_role(new_user)
     
     new_user.set_password(password)
-        
+
     db.session.add(new_user)
     db.session.commit()
+
+    folder_services.get_root_folder(user_id)
 
     return create_access_token(identity=new_user.id)
 

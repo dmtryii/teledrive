@@ -17,22 +17,17 @@ def upload_files():
         raise FileUploadError(message='No selected file')
 
     user_id = get_jwt_identity()
-    try:
-        uploaded_files = file_service.upload_files(files, user_id)
-        return jsonify({"msg": "Files uploaded successfully", "files": uploaded_files}), 201
-    except Exception as e:
-        return jsonify({"msg": f"Unexpected error: {str(e)}"}), 500
+
+    uploaded_files = file_service.upload_files(files, user_id)
+    return jsonify({"message": "Files uploaded successfully", "files": uploaded_files}), 201
 
 
 @bp.route('/<int:file_id>/download', methods=['GET'])
 @jwt_required()
 def download_file(file_id):
     user_id = get_jwt_identity()
-    try:
-        file_url = file_service.download_file(file_id, user_id)
-        return jsonify({"file_url": file_url}), 200
-    except Exception as e:
-        return jsonify({"msg": f"Unexpected error: {str(e)}"}), 500
+    file_url = file_service.download_file(file_id, user_id)
+    return jsonify({"file_url": file_url}), 200
 
 
 @bp.route('/', methods=['GET'])
@@ -43,12 +38,18 @@ def get_files():
     return jsonify([file.to_dict() for file in files]), 200
 
 
+@bp.route('<int:file_id>/move', methods=['POST'])
+@jwt_required()
+def move_file(file_id):
+    user_id = get_jwt_identity()
+    folder_id = request.json.get('folder_id')
+    file = file_service.set_file_folder(user_id, file_id, folder_id)
+    return jsonify(file.to_dict()), 200
+
+
 @bp.route('/<int:file_id>', methods=['DELETE'])
 @jwt_required()
 def delete_file(file_id):
     user_id = get_jwt_identity()
-    try:
-        file_service.delete_file(file_id, user_id)
-        return jsonify({"msg": "File deleted successfully"}), 200
-    except Exception as e:
-        return jsonify({"msg": f"Unexpected error: {str(e)}"}), 500
+    file_service.delete_file(file_id, user_id)
+    return jsonify({"message": "File deleted successfully"}), 200
