@@ -17,6 +17,9 @@ const TopMenu = () => {
         <Button color="inherit" onClick={() => navigate('/upload')}>
           Upload
         </Button>
+        <Button color="inherit" onClick={() => navigate('/about')}>
+          About
+        </Button>
         <Button color="inherit" onClick={() => {
           navigate('/signin');
           localStorage.removeItem('access_token');

@@ -5,6 +5,7 @@ import ProtectedRoute from './ProtectedRoute';
 import UploadPage from '../pages/UploadPage';
 import DrivePage from '../pages/DrivePage';
 import NotFoundPage from '../pages/NotFoundPage';
+import AboutPage from '../pages/AboutPage';
 
 const getAccessToken = () => localStorage.getItem('access_token');
 
@@ -26,6 +27,10 @@ const router = createBrowserRouter([
       {
         path: '/upload',
         element: <UploadPage />
+      },
+      {
+        path: '/about',
+        element: <AboutPage />
       },
       {
         path: '*',
