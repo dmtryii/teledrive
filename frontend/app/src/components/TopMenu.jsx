@@ -8,12 +8,14 @@ const TopMenu = () => {
   return (
     <AppBar position="static">
       <Toolbar>
-        <Typography variant="h6" sx={{ flexGrow: 1 }}>
+        <Typography 
+          variant="h6" 
+          sx={{ flexGrow: 1 }}
+          style={{cursor: 'pointer'}}
+          onClick={() => navigate('/')}
+        >
           TeleDrive
         </Typography>
-        <Button color="inherit" onClick={() => navigate('/')}>
-          MyDrive
-        </Button>
         <Button color="inherit" onClick={() => navigate('/upload')}>
           Upload
         </Button>
