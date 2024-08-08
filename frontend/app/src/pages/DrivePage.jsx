@@ -12,7 +12,9 @@ import {
   TextField,
   Breadcrumbs,
   Link,
-  Button
+  Button,
+  Checkbox,
+  FormControlLabel
 } from '@mui/material';
 import axiosInstance from '../config/axiosConfig';
 import FileCard from '../components/cards/FileCard';
@@ -28,6 +30,7 @@ const DrivePage = () => {
   const [sortCriteria, setSortCriteria] = useState('name');
   const [sortOrder, setSortOrder] = useState('asc');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isEndToEndSearch, setIsEndToEndSearch] = useState(false);
 
   const [path, setPath] = useState([]);
   const [allFolders, setAllFolders] = useState([]);
@@ -71,6 +74,10 @@ const DrivePage = () => {
 
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
+  };
+
+  const handleSearchTypeChange = (event) => {
+    setIsEndToEndSearch(event.target.checked);
   };
 
   const handleNewFolderNameChange = (event) => {
@@ -140,8 +147,12 @@ const DrivePage = () => {
   };
 
   const renderFolders = (folder) => {
-    const filteredFiles = fileSortUtils.filterFiles(folder.files, searchQuery);
-    const sortedFiles = fileSortUtils.sortFiles(filteredFiles, sortCriteria, sortOrder);
+
+    const filesToSort = isEndToEndSearch ? 
+      fileSortUtils.filesInFolder(folder, searchQuery) : 
+      fileSortUtils.filterFiles(folder.files, searchQuery);
+
+    const sortedFiles = fileSortUtils.sortFiles(filesToSort, sortCriteria, sortOrder);
 
     return (
       <Box key={folder.id} mt={4}>
@@ -161,6 +172,7 @@ const DrivePage = () => {
             <Grid item xs={12} sm={6} md={4} lg={3} key={subfolder.id}>
               <FolderCard
                 folder={subfolder}
+                allFolders={allFolders}
                 onClick={() => handleFolderClick(subfolder.id, subfolder.name)}
                 folderContents={folderContents}
                 setFolderContents={setFolderContents}
@@ -210,6 +222,22 @@ const DrivePage = () => {
               value={searchQuery}
               onChange={handleSearchChange}
             />
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={isEndToEndSearch}
+                    onChange={(event) => {
+                      handleSearchTypeChange(event);
+                      setIsEndToEndSearch(event.target.checked)
+                    }}
+                  />
+                }
+                label="End-to-End Search"
+              />
+            </FormControl>
           </Grid>
           <Grid item xs={12} sm={3}>
             <FormControl fullWidth>

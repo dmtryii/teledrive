@@ -21,7 +21,7 @@ import DriveFileMoveIcon from '@mui/icons-material/DriveFileMove';
 import axiosInstance from '../../config/axiosConfig';
 import constructPath from '../../utils/folderUtils';
 
-const FolderCard = ({ folder, onClick, folderContents, setFolderContents, setMessage }) => {
+const FolderCard = ({ folder, allFolders, onClick, folderContents, setFolderContents, setMessage }) => {
   const [targetFolder, setTargetFolder] = useState('');
   const [availableFolders, setAvailableFolders] = useState([]);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -99,6 +99,13 @@ const FolderCard = ({ folder, onClick, folderContents, setFolderContents, setMes
     }
   };
 
+  const getCurrentPath = () => {
+    if (folder) {
+      return constructPath(folder, allFolders);
+    }
+    return '';
+  };
+
   return (
     <Card>
       <CardContent>
@@ -106,6 +113,12 @@ const FolderCard = ({ folder, onClick, folderContents, setFolderContents, setMes
           <FolderIcon onClick={onClick} sx={{ cursor: 'pointer', fontSize: 60 }} />
           <Typography variant="h6" component="h3" sx={{ mt: 1 }}>
             {folder.name}
+          </Typography>
+          <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+            {folder.files.length} {folder.files.length === 1 ? 'file' : 'files'}
+          </Typography>
+          <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+            {folder.subfolders.length} {folder.subfolders.length === 1 ? 'subfolder' : 'subfolders'}
           </Typography>
         </Box>
       </CardContent>
@@ -128,6 +141,12 @@ const FolderCard = ({ folder, onClick, folderContents, setFolderContents, setMes
       >
         <DialogTitle>Move to Folder</DialogTitle>
         <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Name: {folder.name}
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Current Path: {getCurrentPath()}
+          </Typography>
           <FormControl fullWidth>
             <InputLabel>Move to Folder</InputLabel>
             <Select
