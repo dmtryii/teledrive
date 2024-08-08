@@ -111,14 +111,36 @@ const DrivePage = () => {
   };
 
   const handleCreateFolder = async () => {
+    setLoading(true);
     try {
       const response = await axiosInstance.post('folders/', {
         name: newFolderName,
         parent_id: path.length ? path[path.length - 1].id : '',
       });
-  
+
       const newFolder = response.data.new_folder;
-  
+
+      // Update allFolders state to include the new folder
+      setAllFolders(prevFolders => {
+        const addFolderRecursively = (folders) => {
+          return folders.map(folder => {
+            if (folder.id === newFolder.parent_id) {
+              return {
+                ...folder,
+                subfolders: [newFolder, ...folder.subfolders],
+              };
+            }
+            return {
+              ...folder,
+              subfolders: addFolderRecursively(folder.subfolders),
+            };
+          });
+        };
+
+        return addFolderRecursively(prevFolders);
+      });
+
+      // Update folderContents state
       setFolderContents(prevFolders => {
         const addFolderRecursively = (folders) => {
           return folders.map(folder => {
@@ -134,15 +156,17 @@ const DrivePage = () => {
             };
           });
         };
-  
+
         return addFolderRecursively(prevFolders);
       });
-  
+
       setMessage('Folder created successfully.');
       setNewFolderName('');
       setShowCreateFolderForm(false);
     } catch (error) {
       setMessage(`Error: ${error.response?.data?.message || error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
