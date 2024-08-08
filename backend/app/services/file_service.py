@@ -10,7 +10,8 @@ from app.extensions import db
 from app.services import telegram_service, folder_services
 
 
-MAX_FILE_SIZE = 1.5 * 1024 * 1024 * 1024
+FILES_SIZE_LIMIT = 1.5 * 1024 * 1024 * 1024
+SINGLE_FILE_SIZE_LIMIT = 500 * 1024 * 1024
 
 
 def upload_files(files: List[FileStorage], user_id: int, folder_id: int = None) -> List[str]:
@@ -18,14 +19,20 @@ def upload_files(files: List[FileStorage], user_id: int, folder_id: int = None) 
         folder_id = folder_services.get_root_folder(user_id).id
 
     uploaded_files = []
+    total_size = 0
 
     for file in files:
         if file.filename == '':
             continue
 
-        if get_size(file) > MAX_FILE_SIZE:
-            print('Hello')
-            raise FileUploadError(f"File {file.filename} exceeds the maximum allowed size of 1.5 GB")
+        file_size = get_size(file)
+
+        if file_size > SINGLE_FILE_SIZE_LIMIT:
+            raise FileUploadError(f"File {file.filename} exceeds the single file size limit of 500 MB")
+
+        total_size += file_size
+        if total_size > FILES_SIZE_LIMIT:
+            raise FileUploadError(f"Total size of files exceeds the maximum allowed size of 1.5 GB")
 
         # Step 1: Send the document
         telegram_response = telegram_service.send_document(file, user_id)

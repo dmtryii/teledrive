@@ -9,6 +9,7 @@ import constructPath from '../../utils/folderUtils';
 const FileCard = ({ file, allFolders, folderContents, setFolderContents, setMessage }) => {
   const [targetFolder, setTargetFolder] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [currentPath, setCurrentPath] = useState('');
 
   const fileName = file.document_info.file_name || 'Unknown File';
   const truncatedFileName = truncateMiddle(fileName, 20);
@@ -70,6 +71,19 @@ const FileCard = ({ file, allFolders, folderContents, setFolderContents, setMess
     }
   };
 
+  const getCurrentPath = () => {
+    const currentFolder = allFolders.find(folder => folder.id === file.folder_id);
+    if (currentFolder) {
+      return constructPath(currentFolder, allFolders);
+    }
+    return '';
+  };
+
+  const openMoveDialog = () => {
+    setCurrentPath(getCurrentPath());
+    setDialogOpen(true);
+  };
+
   return (
     <Card sx={{ minWidth: 275, mb: 2 }}>
       <CardContent>
@@ -92,7 +106,7 @@ const FileCard = ({ file, allFolders, folderContents, setFolderContents, setMess
           Upload date: {fileFieldsUtils.formatTimestamp(file.upload)}
         </Typography>
       </CardContent>
-      <CardActions style={{ justifyContent: 'space-between'}}>
+      <CardActions style={{ justifyContent: 'space-between' }}>
         <Button
           color="primary"
           onClick={() => handleDownload(file.id)}
@@ -106,7 +120,7 @@ const FileCard = ({ file, allFolders, folderContents, setFolderContents, setMess
           <DeleteIcon />
         </Button>
         <Button
-          onClick={() => setDialogOpen(true)}
+          onClick={openMoveDialog}
         >
           <MoveIcon />
         </Button>
@@ -121,6 +135,12 @@ const FileCard = ({ file, allFolders, folderContents, setFolderContents, setMess
       >
         <DialogTitle>Move to Folder</DialogTitle>
         <DialogContent>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Name: {fileName}
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Current Path: {currentPath}
+          </Typography>
           <FormControl fullWidth>
             <InputLabel>Move to Folder</InputLabel>
             <Select
@@ -129,7 +149,7 @@ const FileCard = ({ file, allFolders, folderContents, setFolderContents, setMess
             >
               {allFolders.map(folder => (
                 <MenuItem key={folder.id} value={folder.id}>
-                  { constructPath(folder, allFolders) }
+                  {constructPath(folder, allFolders)}
                 </MenuItem>
               ))}
             </Select>
